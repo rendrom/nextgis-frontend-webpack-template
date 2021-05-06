@@ -20,7 +20,16 @@ NgwMap.create({
 
 function selectFromVectorLayer(resource, ngwMap) {
   const map = ngwMap.mapAdapter.map;
-  ngwMap.addNgwLayer({ resource, fit: true }).then((adapter) => {
+  ngwMap.addNgwLayer({ resource, fit: true, adapterOptions: {
+    paint: {
+      color: 'white',
+      stroke: true,
+      weight: 3,
+      strokeColor: 'blue',
+      fillOpacity: 1,
+      radius: 5,
+    }
+  } }).then((adapter) => {
     const layer = adapter.layer;
     const vectorSource = layer.getSource();
     const select = new Select();
