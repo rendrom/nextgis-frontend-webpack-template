@@ -20,42 +20,51 @@ NgwMap.create({
 
 function selectFromVectorLayer(resource, ngwMap) {
   const map = ngwMap.mapAdapter.map;
-  ngwMap.addNgwLayer({ resource, fit: true, adapterOptions: {
-    paint: {
-      color: 'white',
-      stroke: true,
-      weight: 3,
-      strokeColor: 'blue',
-      fillOpacity: 1,
-      radius: 5,
-    }
-  } }).then((adapter) => {
-    const layer = adapter.layer;
-    const vectorSource = layer.getSource();
-    const select = new Select();
-    map.addInteraction(select);
+  ngwMap
+    .addNgwLayer({
+      resource,
+      fit: true,
+      adapterOptions: {
+        paint: {
+          color: 'white',
+          stroke: true,
+          weight: 3,
+          strokeColor: 'blue',
+          fillOpacity: 1,
+          radius: 5,
+        },
+      },
+    })
+    .then((adapter) => {
+      const layer = adapter.layer;
+      const vectorSource = layer.getSource();
+      const select = new Select();
+      map.addInteraction(select);
 
-    const selectedFeatures = select.getFeatures();
+      const selectedFeatures = select.getFeatures();
 
-    const dragBox = new DragBox({
-      condition: platformModifierKeyOnly,
-    });
-    map.addInteraction(dragBox);
+      const dragBox = new DragBox({
+        condition: platformModifierKeyOnly,
+      });
+      map.addInteraction(dragBox);
 
-    dragBox.on('boxend', function () {
-      // features that intersect the box are added to the collection of
-      // selected features
-      const extent = dragBox.getGeometry().getExtent();
-      vectorSource.forEachFeatureIntersectingExtent(extent, function (feature) {
-        selectedFeatures.push(feature);
+      dragBox.on('boxend', function () {
+        // features that intersect the box are added to the collection of
+        // selected features
+        const extent = dragBox.getGeometry().getExtent();
+        vectorSource.forEachFeatureIntersectingExtent(
+          extent,
+          function (feature) {
+            selectedFeatures.push(feature);
+          }
+        );
+      });
+
+      // clear selection when drawing a new box and when clicking on the map
+      dragBox.on('boxstart', function () {
+        selectedFeatures.clear();
       });
     });
-
-    // clear selection when drawing a new box and when clicking on the map
-    dragBox.on('boxstart', function () {
-      selectedFeatures.clear();
-    });
-  });
 }
 
 function selectFromTileLayer(resource, ngwMap) {
@@ -68,7 +77,16 @@ function selectFromTileLayer(resource, ngwMap) {
       const select = new Select();
       map.addInteraction(select);
 
-      ngwMap.addGeoJsonLayer({ id: 'highlight' });
+      ngwMap.addGeoJsonLayer({
+        id: 'highlight',
+        paint: {
+          color: 'white',
+          stroke: true,
+          weight: 3,
+          strokeColor: 'blue',
+          radius: 8,
+        },
+      });
 
       const dragBox = new DragBox({
         condition: platformModifierKeyOnly,
