@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@nextgis/ngw-leaflet": "1.0.0-beta.9",
+    "@nextgis/ngw-ol": "*",
     "leaflet.polylinemeasure": "^2.0.0"
   }
 }
