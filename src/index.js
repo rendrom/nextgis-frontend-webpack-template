@@ -1,7 +1,7 @@
+import NgwMap from '@nextgis/ngw-ol';
 import { DragBox, Select } from 'ol/interaction.js';
 import { platformModifierKeyOnly } from 'ol/events/condition.js';
-import GeoJSON from 'ol/format/GeoJSON';
-import NgwMap from '@nextgis/ngw-ol';
+import { getBoundsCoordinates } from '@nextgis/utils';
 import { fetchNgwLayerFeatures } from '@nextgis/ngw-kit';
 
 NgwMap.create({
@@ -14,7 +14,6 @@ NgwMap.create({
   },
 }).then((ngwMap) => {
   ngwMap.addBaseLayer('OSM');
-  // selectFromVectorLayer(4253, ngwMap);
   selectFromTileLayer(4253, ngwMap);
 });
 
@@ -95,13 +94,7 @@ function selectFromTileLayer(resource, ngwMap) {
 
       dragBox.on('boxend', function () {
         const e = dragBox.getGeometry().getExtent();
-        const polygon = [
-          [e[0], e[1]],
-          [e[0], e[3]],
-          [e[2], e[3]],
-          [e[2], e[1]],
-          [e[0], e[1]],
-        ].map(([x, y]) => x + ' ' + y);
+        const polygon = getBoundsCoordinates(e).map(([x, y]) => x + ' ' + y);
         const wkt = `POLYGON((${polygon.join(', ')}))`;
         fetchNgwLayerFeatures({
           resourceId: resource,
