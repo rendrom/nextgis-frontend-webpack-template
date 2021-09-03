@@ -1,8 +1,9 @@
 import NgwMap from '@nextgis/ngw-ol';
-import { DragBox, Select } from 'ol/interaction.js';
-import { platformModifierKeyOnly } from 'ol/events/condition.js';
-import { getBoundsCoordinates } from '@nextgis/utils';
-import { fetchNgwLayerFeatures } from '@nextgis/ngw-kit';
+import VectorSource from 'ol/source/Vector.js';
+import VectorLayer from 'ol/layer/Vector';
+import CircleStyle from 'ol/style/Circle';
+import Draw from 'ol/interaction/Draw';
+import { Fill, Stroke, Style } from 'ol/style';
 
 NgwMap.create({
   target: 'map',
@@ -12,105 +13,60 @@ NgwMap.create({
   mapAdapterOptions: {
     //
   },
-}).then((ngwMap) => {
+}).then(async (ngwMap) => {
   ngwMap.addBaseLayer('OSM');
-  selectFromTileLayer(4253, ngwMap);
+
+  await ngwMap.addNgwLayer({
+    resource: 4224, // 972
+
+    fit: true,
+
+    adapterOptions: {
+      limit: 10,
+      waitFullLoad: true,
+
+      paint: {
+        // stroke: false,
+
+        fillOpacity: 0,
+      },
+    },
+  });
+
+  let map = ngwMap.mapAdapter.map;
+
+  const source = new VectorSource();
+
+  const vector = new VectorLayer({
+    source: source,
+
+    style: new Style({
+      fill: new Fill({
+        color: 'rgba(255, 255, 255, 0.2)',
+      }),
+      stroke: new Stroke({
+        color: '#ffcc33',
+
+        width: 2,
+      }),
+      image: new CircleStyle({
+        radius: 7,
+        fill: new Fill({
+          color: '#ffcc33',
+        }),
+      }),
+    }),
+  });
+
+  map.addLayer(vector);
+
+  let draw = new Draw({
+    source: source,
+    type: 'LineString',
+  });
+
+  map.addInteraction(draw);
+
+  // selectFromTileLayer(4253, ngwMap);
 });
 
-function selectFromVectorLayer(resource, ngwMap) {
-  const map = ngwMap.mapAdapter.map;
-  ngwMap
-    .addNgwLayer({
-      resource,
-      fit: true,
-      adapterOptions: {
-        paint: {
-          color: 'white',
-          stroke: true,
-          weight: 3,
-          strokeColor: 'blue',
-          fillOpacity: 1,
-          radius: 5,
-        },
-      },
-    })
-    .then((adapter) => {
-      const layer = adapter.layer;
-      const vectorSource = layer.getSource();
-      const select = new Select();
-      map.addInteraction(select);
-
-      const selectedFeatures = select.getFeatures();
-
-      const dragBox = new DragBox({
-        condition: platformModifierKeyOnly,
-      });
-      map.addInteraction(dragBox);
-
-      dragBox.on('boxend', function () {
-        // features that intersect the box are added to the collection of
-        // selected features
-        const extent = dragBox.getGeometry().getExtent();
-        vectorSource.forEachFeatureIntersectingExtent(
-          extent,
-          function (feature) {
-            selectedFeatures.push(feature);
-          }
-        );
-      });
-
-      // clear selection when drawing a new box and when clicking on the map
-      dragBox.on('boxstart', function () {
-        selectedFeatures.clear();
-      });
-    });
-}
-
-function selectFromTileLayer(resource, ngwMap) {
-  const map = ngwMap.mapAdapter.map;
-  ngwMap
-    .addNgwLayer({ resource, fit: true, adapter: 'TILE' })
-    .then((adapter) => {
-      const layer = adapter.layer;
-      const vectorSource = layer.getSource();
-      const select = new Select();
-      map.addInteraction(select);
-
-      ngwMap.addGeoJsonLayer({
-        id: 'highlight',
-        paint: {
-          color: 'white',
-          stroke: true,
-          weight: 3,
-          strokeColor: 'blue',
-          radius: 8,
-        },
-      });
-
-      const dragBox = new DragBox({
-        condition: platformModifierKeyOnly,
-      });
-      map.addInteraction(dragBox);
-
-      dragBox.on('boxend', function () {
-        const e = dragBox.getGeometry().getExtent();
-        const polygon = getBoundsCoordinates(e).map(([x, y]) => x + ' ' + y);
-        const wkt = `POLYGON((${polygon.join(', ')}))`;
-        fetchNgwLayerFeatures({
-          resourceId: resource,
-          connector: ngwMap.connector,
-          intersects: wkt,
-        }).then((features) => {
-          ngwMap.setLayerData('highlight', {
-            type: 'FeatureCollection',
-            features,
-          });
-        });
-      });
-
-      // clear selection when drawing a new box and when clicking on the map
-      dragBox.on('boxstart', function () {
-        ngwMap.clearLayerData('highlight');
-      });
-    });
-}

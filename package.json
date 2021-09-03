@@ -22,7 +22,7 @@
   "dependencies": {
     "@nextgis/ngw-leaflet": "1.4.0",
     "@nextgis/ngw-ol": "1.4.0",
-    "core-js": "^3.16.2",
+    "core-js": "^3.17.2",
     "geostyler-mapfile-parser": "0.0.3",
     "geostyler-qgis-parser": "^0.3.0",
     "leaflet.polylinemeasure": "^3.0.0"
