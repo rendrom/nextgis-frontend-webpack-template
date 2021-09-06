@@ -6,7 +6,7 @@ module.exports = (env, argv) => {
 
   return {
     mode: argv.mode || 'development',
-    entry: '/src/index-ol-2.js',
+    entry: '/src/index-ol.js',
     module: {
       rules: [
         {
