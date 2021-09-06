@@ -26,8 +26,6 @@ NgwMap.create({
       waitFullLoad: true,
 
       paint: {
-        // stroke: false,
-
         fillOpacity: 0,
       },
     },
@@ -67,6 +65,5 @@ NgwMap.create({
 
   map.addInteraction(draw);
 
-  // selectFromTileLayer(4253, ngwMap);
 });
 
